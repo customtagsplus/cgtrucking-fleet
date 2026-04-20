@@ -1,0 +1,20 @@
+{
+  "name": "Cedar Grove Fleet",
+  "short_name": "CG Fleet",
+  "description": "Cedar Grove HB Fleet Management App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0d14",
+  "theme_color": "#0a0d14",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    { "name": "Log Trip",    "url": "/?form=trip",    "description": "Log a new trip" },
+    { "name": "Log Fuel",    "url": "/?form=fuel",    "description": "Log a fuel fill-up" },
+    { "name": "Log Service", "url": "/?form=service", "description": "Log a service record" }
+  ]
+}

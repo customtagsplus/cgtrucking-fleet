@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0d14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Cedar Grove HB Fleet Management">
+<title>Cedar Grove Fleet</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-logo">CG</div>
+  <div class="login-title">Cedar Grove Fleet</div>
+  <div class="login-sub">Enter your email to sign in.<br>Your driver profile loads automatically.</div>
+  <input class="login-email" id="login-email" type="email" placeholder="yourname@cedargrovecolony.com" autocomplete="email">
+  <button class="btn-primary" onclick="doLogin()">Sign In</button>
+  <button class="btn-ghost" style="margin-top:8px" onclick="showSetup()">⚙ Configure Google Sheets</button>
+</div>
+
+<!-- ── SETUP ── -->
+<div id="setup-screen">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;margin-bottom:6px">Connect Google Sheets</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;text-align:center">Paste your Apps Script Web App URL</div>
+  <div class="setup-steps">
+    <div class="setup-step">1. Open your Google Sheet → <strong>Extensions → Apps Script</strong></div>
+    <div class="setup-step">2. Paste <strong>CedarGrove_AppScript_v2.js</strong> and save</div>
+    <div class="setup-step">3. <strong>Deploy → New deployment → Web App</strong></div>
+    <div class="setup-step">4. Execute as: <strong>Me</strong> · Access: <strong>Anyone</strong></div>
+    <div class="setup-step">5. Copy the URL and paste below</div>
+  </div>
+  <input class="setup-url" id="setup-url" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+  <button class="btn-primary" onclick="saveSetup()">Save & Launch</button>
+  <button class="btn-ghost" onclick="closeSetup()">Back</button>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app" style="display:none">
+  <div id="header">
+    <div class="logo">
+      <div class="logo-icon">CG</div>
+      <div>
+        <div class="logo-text">CEDAR GROVE</div>
+        <div class="logo-sub">Fleet Management</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sync-dot" id="sync-dot"></div>
+      <div class="user-chip" id="user-chip">—</div>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+      <div class="stat-grid" id="dash-stats"></div>
+      <div class="sec">MPG by Truck</div>
+      <div id="mpg-chart"></div>
+      <div class="sec">Service Alerts</div>
+      <div id="dash-alerts"></div>
+    </div>
+
+    <!-- TRIPS -->
+    <div class="page" id="page-trips">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="trip-search" placeholder="Driver, destination, cargo…" oninput="filterTrips()">
+      </div>
+      <div class="chips" id="truck-chips"></div>
+      <div id="trip-list"></div>
+    </div>
+
+    <!-- TRUCKS -->
+    <div class="page" id="page-trucks">
+      <div id="truck-list"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="page" id="page-log">
+      <div class="sec">Log New Entry</div>
+      <div class="log-tiles">
+        <div class="log-tile" style="--tc:var(--accent)"  onclick="openForm('trip')">
+          <div class="log-tile-icon">🛣️</div>
+          <div class="log-tile-label">Trip Log</div>
+          <div class="log-tile-sub">Mileage & states</div>
+        </div>
+        <div class="log-tile" style="--tc:var(--accent2)" onclick="openForm('fuel')">
+          <div class="log-tile-icon">⛽</div>
+          <div class="log-tile-label">Fuel Fill-Up</div>
+          <div class="log-tile-sub">Gallons & cost</div>
+        </div>
+        <div class="log-tile" style="--tc:var(--warn)"    onclick="openForm('service')">
+          <div class="log-tile-icon">🔧</div>
+          <div class="log-tile-label">Service</div>
+          <div class="log-tile-sub">Oil, grease, repairs</div>
+        </div>
+        <div class="log-tile" style="--tc:var(--accent3)" onclick="openForm('driver')">
+          <div class="log-tile-icon">👤</div>
+          <div class="log-tile-label">Driver</div>
+          <div class="log-tile-sub">Add / update</div>
+        </div>
+      </div>
+      <div class="sec">Recent Entries</div>
+      <div id="recent-log"></div>
+      <div class="card" style="margin-top:14px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Account</div>
+        <div style="font-size:13px;margin-bottom:12px" id="acct-info"></div>
+        <button class="btn-ghost" style="margin-top:0"   onclick="signOut()">Sign Out</button>
+        <button class="btn-ghost" style="margin-top:8px" onclick="showSetup()">Change Script URL</button>
+        <button class="btn-ghost" style="margin-top:8px;color:var(--accent)" onclick="syncAll()">↻ Sync from Sheets</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <nav id="nav">
+    <button class="nav-btn active" onclick="goPage('dash',this)"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></button>
+    <button class="nav-btn"        onclick="goPage('trips',this)"><span class="nav-icon">🛣️</span><span class="nav-label">Trips</span></button>
+    <button class="nav-btn"        onclick="goPage('trucks',this)"><span class="nav-icon">🚛</span><span class="nav-label">Trucks</span></button>
+    <button class="nav-btn"        onclick="goPage('log',this)"><span class="nav-icon">➕</span><span class="nav-label">Log</span></button>
+  </nav>
+</div><!-- /app -->
+
+<!-- FORM SHEET -->
+<div class="overlay" id="form-overlay" onclick="overlayClick(event,'form-overlay')">
+  <div class="sheet" id="form-sheet">
+    <div class="handle"></div>
+    <div class="sheet-title" id="form-title"></div>
+    <div id="form-body"></div>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="overlay" id="detail-overlay" onclick="overlayClick(event,'detail-overlay')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title" id="detail-title"></div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
